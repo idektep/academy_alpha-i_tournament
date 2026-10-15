@@ -1,0 +1,1098 @@
+[
+    {
+        "id": "57b3492b059d8ed0",
+        "type": "tab",
+        "label": "🏆 IDT'GREEN-HOUSE AI DASHBOARD",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "72a6049ed776e56b",
+        "type": "json",
+        "z": "57b3492b059d8ed0",
+        "name": "Parse JSON",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 350,
+        "y": 80,
+        "wires": [
+            [
+                "6b676a64ac564ca3",
+                "0e49455abc61d201",
+                "bce1811510ae9cf9",
+                "b16bbb8dc931b49b",
+                "929910ec68addeb3"
+            ]
+        ]
+    },
+    {
+        "id": "6b676a64ac564ca3",
+        "type": "function",
+        "z": "57b3492b059d8ed0",
+        "name": "Route LEDs by label",
+        "func": "let p = msg.payload || {};\nlet label = p.y_label_pred || p.y_label || \"unknown\";\n\nlet normalMsg = { payload: label === \"normal\" };\nlet alertMsg  = { payload: label === \"alert\" };\nlet alarmMsg  = { payload: label === \"alarm\" };\n\nreturn [normalMsg, alertMsg, alarmMsg];",
+        "outputs": 3,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 620,
+        "y": 60,
+        "wires": [
+            [
+                "ddabb2845b1b0b80"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "bce1811510ae9cf9",
+        "type": "function",
+        "z": "57b3492b059d8ed0",
+        "name": "To chart series",
+        "func": "let p = msg.payload || {};\nlet msgs = [];\n\nlet ts = Date.now();  \n\nif (typeof p.temp_c !== 'undefined') {\n    msgs.push({ topic: 'temperature', payload: p.temp_c, timestamp: ts });\n}\nif (typeof p.humidity_pct !== 'undefined') {\n    msgs.push({ topic: 'humidity', payload: p.humidity_pct, timestamp: ts });\n}\nreturn [msgs];",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 660,
+        "y": 160,
+        "wires": [
+            [
+                "a216e405fdf48f08"
+            ]
+        ]
+    },
+    {
+        "id": "0e49455abc61d201",
+        "type": "ui_text",
+        "z": "57b3492b059d8ed0",
+        "group": "48630916cd4b76b1",
+        "order": 21,
+        "width": 8,
+        "height": 2,
+        "name": "Predicted state",
+        "label": "Predicted:",
+        "format": "{{msg.payload.y_label_pred || msg.payload.y_label}}",
+        "layout": "row-spread",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": "",
+        "color": "#000000",
+        "x": 960,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "cabf7d93e22f5251",
+        "type": "function",
+        "z": "57b3492b059d8ed0",
+        "name": "Clear dashboard (chart + LEDs + text)",
+        "func": "// ---------- CHECK EMPTY PAYLOAD ----------\nlet isEmptyObject =\n    typeof msg.payload === \"object\" &&\n    !Array.isArray(msg.payload) &&\n    Object.keys(msg.payload).length === 0;\n\nlet isEmptyArray =\n    Array.isArray(msg.payload) &&\n    msg.payload.length === 0;\n\nif (isEmptyObject || isEmptyArray) {\n\n    // ----- RESET MODE -----\n    let normalOff = { payload: false };\n    let alertOff = { payload: false };\n    let alarmOff = { payload: false };\n    let textClear = { payload: \"\" };\n\n    return [null, normalOff, alertOff, alarmOff, textClear];\n}\n",
+        "outputs": 5,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 530,
+        "y": 400,
+        "wires": [
+            [],
+            [
+                "ddabb2845b1b0b80"
+            ],
+            [],
+            [],
+            [
+                "0e49455abc61d201"
+            ]
+        ]
+    },
+    {
+        "id": "a216e405fdf48f08",
+        "type": "ui_chart",
+        "z": "57b3492b059d8ed0",
+        "name": "th values",
+        "group": "48630916cd4b76b1",
+        "order": 29,
+        "width": 9,
+        "height": 7,
+        "label": "TEMP_HUMID MONITOR",
+        "chartType": "line",
+        "legend": "true",
+        "xformat": "HH:mm",
+        "interpolate": "linear",
+        "nodata": "No data",
+        "dot": false,
+        "ymin": "",
+        "ymax": "",
+        "removeOlder": "1",
+        "removeOlderPoints": "",
+        "removeOlderUnit": "86400",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": false,
+        "colors": [
+            "#1f77b4",
+            "#ff7f0e",
+            "#2ca02c",
+            "#d62728",
+            "#9467bd",
+            "#8c564b",
+            "#000000",
+            "#000000",
+            "#000000"
+        ],
+        "outputs": 1,
+        "useDifferentColor": false,
+        "className": "",
+        "x": 940,
+        "y": 160,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "b2a397b7bd7e0fec",
+        "type": "ui_button",
+        "z": "57b3492b059d8ed0",
+        "name": "",
+        "group": "48630916cd4b76b1",
+        "order": 7,
+        "width": 5,
+        "height": 1,
+        "passthru": false,
+        "label": "RESET BUTTON",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "red",
+        "className": "",
+        "icon": "",
+        "payload": "[]",
+        "payloadType": "json",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 250,
+        "y": 360,
+        "wires": [
+            [
+                "cabf7d93e22f5251",
+                "a216e405fdf48f08",
+                "549cdc7a88944f2c"
+            ]
+        ]
+    },
+    {
+        "id": "549cdc7a88944f2c",
+        "type": "ui_gauge",
+        "z": "57b3492b059d8ed0",
+        "name": "🌡 Temp Gauge",
+        "group": "48630916cd4b76b1",
+        "order": 3,
+        "width": 4,
+        "height": 3,
+        "gtype": "gage",
+        "title": "🌡 Temp Gauge",
+        "label": "°C",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "50",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "diff": false,
+        "className": "",
+        "x": 1020,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "929910ec68addeb3",
+        "type": "function",
+        "z": "57b3492b059d8ed0",
+        "name": "To Sensors",
+        "func": "let p = msg.payload || {};\n\nlet ts = p.timestamp || null;\n\nlet mTemp = (p.temp_c !== undefined)\n    ? { payload: Number(p.temp_c).toFixed(2), timestamp: ts }\n    : null;\n\nreturn [mTemp];",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 870,
+        "y": 320,
+        "wires": [
+            [
+                "549cdc7a88944f2c"
+            ]
+        ]
+    },
+    {
+        "id": "b16bbb8dc931b49b",
+        "type": "debug",
+        "z": "57b3492b059d8ed0",
+        "name": "debug 2",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 320,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "7a9fb4c815f6384d",
+        "type": "ui_template",
+        "z": "57b3492b059d8ed0",
+        "group": "48630916cd4b76b1",
+        "name": "Space Theme",
+        "order": 28,
+        "width": 0,
+        "height": 0,
+        "format": "<style>\n    /* ===============================\n   SOFT ENCHANTED FAIRY THEME v2\n=============================== */\n \n    /* ===== BACKGROUND ===== */\n    body {\n        background: linear-gradient(135deg, #f6d8ff 0%, #c8f7ff 40%, #ffe7c4 100%) !important;\n        font-family: \"Georgia\", serif !important;\n        color: #4b3a5a !important;\n    }\n \n    /* Sparkle overlay */\n    body::before {\n        content: \"\";\n        position: fixed;\n        width: 100%;\n        height: 100%;\n        background-image: radial-gradient(rgba(255, 255, 255, 0.6) 1px, transparent 1px);\n        background-size: 25px 25px;\n        pointer-events: none;\n        z-index: 0;\n        opacity: 0.3;\n    }\n \n    /* ===== TOP BAR ===== */\n    md-toolbar {\n        background: linear-gradient(90deg, #ffb6e6, #b8f0ff) !important;\n        color: #5a2d82 !important;\n        font-weight: bold;\n        letter-spacing: 1px;\n        box-shadow: 0 3px 15px rgba(255, 180, 255, 0.4);\n    }\n \n    /* ===== CARD STYLE (โปร่ง) ===== */\n    .nr-dashboard-card {\n        background: rgba(243, 183, 214, 0.8) !important;\n        backdrop-filter: blur(12px);\n        border-radius: 25px !important;\n        border: 1px solid rgba(255, 255, 255, 0.6);\n        box-shadow: 0 10px 35px rgba(180, 150, 255, 0.25);\n        transition: all 0.3s ease;\n    }\n \n    /* Hover glow */\n    .nr-dashboard-card:hover {\n        transform: translateY(-4px);\n        box-shadow: 0 15px 45px rgba(255, 150, 220, 0.35);\n    }\n \n    /* ===== CARD TITLE ===== */\n    .nr-dashboard-cardtitle {\n        color: #b03aff !important;\n        font-weight: bold;\n        font-size: 18px !important;\n        text-shadow: 0 0 6px rgba(255, 255, 255, 0.8);\n    }\n \n    /* ===== GAUGE ===== */\n    .nr-dashboard-gauge text {\n        fill: #7a3cff !important;\n        font-weight: bold;\n    }\n \n    /* ===== CONTROL BARS (เรืองแสงแทนสีเทา) ===== */\n    .nr-dashboard-switch,\n    .nr-dashboard-ui_switch,\n    .nr-dashboard-template {\n        background: rgba(255, 255, 255, 0.4) !important;\n        border-radius: 20px !important;\n        backdrop-filter: blur(8px);\n    }\n \n    /* ===== LED GLOW ===== */\n    .nr-dashboard-ui_led div {\n        box-shadow: 0 0 15px currentColor !important;\n    }\n \n    /* ===== BUTTON ===== */\n    md-button {\n        border-radius: 25px !important;\n        background: linear-gradient(45deg, #ff6ec4, #7873f5) !important;\n        color: white !important;\n        font-weight: bold !important;\n        letter-spacing: 1px;\n        box-shadow: 0 6px 20px rgba(255, 100, 200, 0.4);\n        transition: 0.3s ease;\n    }\n \n    md-button:hover {\n        transform: scale(1.05);\n        box-shadow: 0 10px 30px rgba(255, 100, 220, 0.6);\n    }\n \n    /* ===== CHART AREA (เทาจาง) ===== */\n    .nr-dashboard-chart {\n        background: rgba(243, 183, 214, 0.8) !important;\n        border-radius: 20px;\n        padding: 15px;\n        backdrop-filter: blur(10px);\n    }\n \n    /* ===== TEXT ===== */\n    .nr-dashboard-text {\n        font-size: 16px !important;\n        color: #5a2d82 !important;\n    }\n \n    /* ===== REMOVE DARK GREY BLOCK ===== */\n    .nr-dashboard-cardcontainer {\n        background: transparent !important;\n    }\n \n    /* ===== RESET BUTTON  ===== */\n    .nr-dashboard-button button {\n        background: linear-gradient(45deg, #ff5f6d, #ffc371) !important;\n        border-radius: 20px !important;\n        font-weight: bold;\n    }\n</style>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": false,
+        "templateScope": "global",
+        "className": "",
+        "x": 480,
+        "y": 740,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "ddabb2845b1b0b80",
+        "type": "ui_led",
+        "z": "57b3492b059d8ed0",
+        "order": 12,
+        "group": "48630916cd4b76b1",
+        "width": 8,
+        "height": 1,
+        "label": "Normal",
+        "labelPlacement": "left",
+        "labelAlignment": "left",
+        "colorForValue": [
+            {
+                "color": "#00ff00",
+                "value": "true",
+                "valueType": "bool"
+            },
+            {
+                "color": "#444444",
+                "value": "false",
+                "valueType": "bool"
+            }
+        ],
+        "allowColorForValueInMessage": false,
+        "shape": "dot",
+        "showGlow": true,
+        "name": "led_nor",
+        "x": 940,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "3791de95b44605af",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "",
+        "order": 5,
+        "width": 6,
+        "height": 1
+    },
+    {
+        "id": "e076f12fe7c3ac61",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "",
+        "order": 2,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "4d1a581f99b30d94",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "",
+        "order": 4,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "5958db38b89d68eb",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "",
+        "order": 5,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "2a667e6795b10281",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "",
+        "order": 7,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "2f2ebab3dfeecde3",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "",
+        "order": 9,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "f0105c75d5c56976",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "",
+        "order": 10,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "c43fb0f22c97c7e2",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "",
+        "order": 2,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "05f106bbe4383836",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "",
+        "order": 4,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "039de693786eedf9",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "",
+        "order": 6,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "8483395f80de210c",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "",
+        "order": 7,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "ad4b525f98d5c5f8",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "",
+        "order": 8,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "f0dee99ec5866487",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "",
+        "order": 9,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "eb77ef6de8f83c6d",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "",
+        "order": 10,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "e862807268149e25",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "",
+        "order": 11,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "067b03fb1166c345",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "",
+        "order": 12,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "edc18c27589c3126",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "",
+        "order": 13,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "57cd569bedf59a6a",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "",
+        "order": 14,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "31c7268f49240a3b",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "",
+        "order": 15,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "60ed1cfa33e8b351",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "",
+        "order": 16,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "37a32e104b9b5c8f",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "",
+        "order": 17,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "8b6a34675f12413c",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "",
+        "order": 18,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "2102794b9cbd59bc",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "4cf9d139fa1fda71",
+        "order": 2,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "ff248f3425b8e3f0",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "4cf9d139fa1fda71",
+        "order": 4,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "f5c4b9da648776b2",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "4cf9d139fa1fda71",
+        "order": 6,
+        "width": 4,
+        "height": 1
+    },
+    {
+        "id": "1cce4ec7ad795b1b",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "4cf9d139fa1fda71",
+        "order": 8,
+        "width": 10,
+        "height": 1
+    },
+    {
+        "id": "b1260b71f601047b",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "4cf9d139fa1fda71",
+        "order": 9,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "d5fe925c1960e825",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "4cf9d139fa1fda71",
+        "order": 11,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "6fd1d32be1449783",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "4cf9d139fa1fda71",
+        "order": 13,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "0350066a5ab24723",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "4cf9d139fa1fda71",
+        "order": 14,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "c184d3964c31ded0",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "4cf9d139fa1fda71",
+        "order": 15,
+        "width": 9,
+        "height": 1
+    },
+    {
+        "id": "1f3c9aa2d943a5af",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "4cf9d139fa1fda71",
+        "order": 16,
+        "width": 22,
+        "height": 1
+    },
+    {
+        "id": "4101fa370e915b4e",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "4cf9d139fa1fda71",
+        "order": 18,
+        "width": 3,
+        "height": 1
+    },
+    {
+        "id": "f1b5d0319560c91e",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "4cf9d139fa1fda71",
+        "order": 19,
+        "width": 22,
+        "height": 1
+    },
+    {
+        "id": "079eabdf233f971e",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "4cf9d139fa1fda71",
+        "order": 20,
+        "width": 3,
+        "height": 1
+    },
+    {
+        "id": "ea18c3f1d9567a53",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "4cf9d139fa1fda71",
+        "order": 21,
+        "width": 9,
+        "height": 1
+    },
+    {
+        "id": "c61290df68773df3",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "4cf9d139fa1fda71",
+        "order": 23,
+        "width": 9,
+        "height": 1
+    },
+    {
+        "id": "511ce0c5f3bd4f88",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "4cf9d139fa1fda71",
+        "order": 24,
+        "width": 3,
+        "height": 1
+    },
+    {
+        "id": "2a753298dff450c4",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "4cf9d139fa1fda71",
+        "order": 26,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "35c3f5d95d85e5eb",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "4cf9d139fa1fda71",
+        "order": 27,
+        "width": 16,
+        "height": 1
+    },
+    {
+        "id": "2c71f1081503f492",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "4cf9d139fa1fda71",
+        "order": 28,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "48eebda516160e11",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "4cf9d139fa1fda71",
+        "order": 29,
+        "width": 16,
+        "height": 1
+    },
+    {
+        "id": "96d81b8930c46e10",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "4cf9d139fa1fda71",
+        "order": 30,
+        "width": 29,
+        "height": 1
+    },
+    {
+        "id": "780ce4cef6f79606",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "4cf9d139fa1fda71",
+        "order": 31,
+        "width": 29,
+        "height": 1
+    },
+    {
+        "id": "0944f4be96ceefef",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "48630916cd4b76b1",
+        "order": 2,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "1d3bc8eb405dec66",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "48630916cd4b76b1",
+        "order": 4,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "59ab68c0406945f4",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "48630916cd4b76b1",
+        "order": 6,
+        "width": 4,
+        "height": 1
+    },
+    {
+        "id": "c1b5499ec073b2c5",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "48630916cd4b76b1",
+        "order": 9,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "5acada93ec6c6b77",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "48630916cd4b76b1",
+        "order": 10,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "16714a142bc95b7d",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "48630916cd4b76b1",
+        "order": 11,
+        "width": 9,
+        "height": 1
+    },
+    {
+        "id": "355f30895ec1aa04",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "48630916cd4b76b1",
+        "order": 13,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "89520be2e2cf050e",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "48630916cd4b76b1",
+        "order": 14,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "fb54e7376283c78d",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "48630916cd4b76b1",
+        "order": 15,
+        "width": 9,
+        "height": 1
+    },
+    {
+        "id": "60183d8a41e4cd34",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "48630916cd4b76b1",
+        "order": 16,
+        "width": 10,
+        "height": 1
+    },
+    {
+        "id": "fc39f9544d5e526b",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "48630916cd4b76b1",
+        "order": 18,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "32febe5573d62bdc",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "48630916cd4b76b1",
+        "order": 20,
+        "width": 9,
+        "height": 1
+    },
+    {
+        "id": "9a04c1e046c6dfc8",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "48630916cd4b76b1",
+        "order": 22,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "dc85c4222d527954",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "48630916cd4b76b1",
+        "order": 23,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "41a9d4d5d961d713",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "48630916cd4b76b1",
+        "order": 24,
+        "width": 9,
+        "height": 1
+    },
+    {
+        "id": "804de59f32afd6da",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "48630916cd4b76b1",
+        "order": 25,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "0dacbdc08ea41a8b",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "48630916cd4b76b1",
+        "order": 26,
+        "width": 2,
+        "height": 1
+    },
+    {
+        "id": "c2440f1df849d2c8",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "48630916cd4b76b1",
+        "order": 27,
+        "width": 9,
+        "height": 1
+    },
+    {
+        "id": "64ac8260b4238475",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "48630916cd4b76b1",
+        "order": 30,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "115514c6a11c39a2",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "48630916cd4b76b1",
+        "order": 32,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "9fadb3553a77f0ec",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "48630916cd4b76b1",
+        "order": 34,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "32a6f73814a28142",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "48630916cd4b76b1",
+        "order": 35,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "7a07b592f52c25ac",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "48630916cd4b76b1",
+        "order": 36,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "7906fa96ace32e7b",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "48630916cd4b76b1",
+        "order": 37,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "60e0d13a424f88f1",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "48630916cd4b76b1",
+        "order": 38,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "bb04705d7a1e88ca",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "48630916cd4b76b1",
+        "order": 39,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "6f2d70353aa28e29",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "48630916cd4b76b1",
+        "order": 40,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "67a2bcda19b1df6d",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "48630916cd4b76b1",
+        "order": 41,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "f3daa3c864e981b4",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "48630916cd4b76b1",
+        "order": 42,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "d2cfe791bc02bd5d",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "48630916cd4b76b1",
+        "order": 43,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "2faba9ce1b67dc6e",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "48630916cd4b76b1",
+        "order": 44,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "dcf6f52917582483",
+        "type": "ui_spacer",
+        "z": "57b3492b059d8ed0",
+        "name": "spacer",
+        "group": "48630916cd4b76b1",
+        "order": 45,
+        "width": 1,
+        "height": 1
+    },
+    {
+        "id": "48630916cd4b76b1",
+        "type": "ui_group",
+        "z": "57b3492b059d8ed0",
+        "name": "🌿 AI Greenhouse Control System",
+        "tab": "ui_tab_plant",
+        "order": 2,
+        "disp": true,
+        "width": 29,
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "ui_tab_plant",
+        "type": "ui_tab",
+        "name": "Dashboard",
+        "icon": "dashboard",
+        "order": 1,
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "fd7ef34112ccb88c",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-dashboard": "3.6.5",
+            "node-red-contrib-ui-led": "0.4.11"
+        }
+    }
+]
